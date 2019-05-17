@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/mu01"
+        android:title="添加"></item>
+    <item android:id="@+id/mu02"
+        android:title="功能2"></item>
+    <item android:id="@+id/mu03"
+        android:title="功能3"></item>
+
+</menu>
