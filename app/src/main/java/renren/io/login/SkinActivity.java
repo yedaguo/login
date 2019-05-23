@@ -7,14 +7,31 @@ import android.os.Looper;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+
+import renren.io.model.Msg;
 import renren.io.utils.SharedPreferencesUtil;
 
 public class SkinActivity extends Activity {
     private TextView textView;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_skip);
+
+        final JSONObject jsonParam = new JSONObject();
+        jsonParam.put("username", SharedPreferencesUtil.getData("MyDemo","username",""));
 
 
         new Thread(){
@@ -39,6 +56,7 @@ public class SkinActivity extends Activity {
                             startActivity(intent);
                             finish();
                         }else {
+                            //已经登录直接跳转
                             intent.setClass(SkinActivity.this, renren.io.login.ListActivity.class);
                             startActivity(intent);
                             finish();
@@ -52,9 +70,6 @@ public class SkinActivity extends Activity {
                 }
             }
         }.start();
-
-
-
 
     }
 }

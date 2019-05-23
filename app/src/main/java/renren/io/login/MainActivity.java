@@ -43,8 +43,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private String password;
     private String code;
 
-    private String img_url = "https://nhapi.hzqiaoxun.com/renren-fast/captcha.jpg?uuid=";
-    private String login_url="https://nhapi.hzqiaoxun.com/renren-fast/sys/login";
+    private String img_url = "http://47.110.63.155/renren-fast/captcha.jpg?uuid=";
+    private String login_url="http://47.110.63.155/renren-fast/sys/login";
+
+//    private String img_url = "https://nhapi.hzqiaoxun.com/renren-fast/captcha.jpg?uuid=";
+//    private String login_url="https://nhapi.hzqiaoxun.com/renren-fast/sys/login";
     //private String img_url = "http://192.168.0.195:8080/renren-fast/captcha.jpg?uuid=";
     //private String login_url="http://192.168.0.195:8080/renren-fast/sys/login";
 
@@ -292,17 +295,17 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         String result = EntityUtils.toString(response.getEntity());
                         System.out.println("123 "+result);
                         //6.从HttpEntity中得到相应过来的输入流（不管是请求的数据还是响应过来的数据都封装到HttpEntity中）
-                        JSONObject jsonObject = JSONObject.parseObject(result.toString());
+                        JSONObject jsonObject = JSONObject.parseObject(result);
                         System.out.println("code:"+jsonObject.getString("code"));
                         Looper.prepare();
                         if(jsonObject.getString("code").equals("0")){
                             SharedPreferencesUtil.saveData("MyDemo","username",username);
-                            SharedPreferencesUtil.saveData("MyDemo","token",username);
+                            SharedPreferencesUtil.saveData("MyDemo","token",jsonObject.getString("token"));
                             SharedPreferencesUtil.saveData("MyDemo","time",System.currentTimeMillis());
                             SharedPreferencesUtil.saveData("MyDemo","expire",jsonObject.getLong("expire"));
-
-
                             Toast.makeText(MainActivity.this,"登录成功",Toast.LENGTH_SHORT).show();
+
+
 
                             Intent it = new Intent();
                             it.setClass(MainActivity.this, renren.io.login.ListActivity.class);
