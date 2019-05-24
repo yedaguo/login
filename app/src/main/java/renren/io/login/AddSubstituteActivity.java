@@ -64,7 +64,7 @@ public class AddSubstituteActivity extends Activity {
     private String orderNum;
     private String signature;
 
-    private String Add_Url = "http://47.110.63.155/renren-fast/nuohua/nhSubstitute/save";
+    private String Add_Url = "https://api.highboy.cn/renren-fast/nuohua/nhSubstitute/save";
 
 
 

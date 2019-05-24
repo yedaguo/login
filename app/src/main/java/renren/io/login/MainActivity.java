@@ -43,8 +43,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private String password;
     private String code;
 
-    private String img_url = "http://47.110.63.155/renren-fast/captcha.jpg?uuid=";
-    private String login_url="http://47.110.63.155/renren-fast/sys/login";
+    private String img_url = "https://api.highboy.cn/renren-fast/captcha.jpg?uuid=";
+    private String login_url="https://api.highboy.cn/renren-fast/sys/login";
 
 //    private String img_url = "https://nhapi.hzqiaoxun.com/renren-fast/captcha.jpg?uuid=";
 //    private String login_url="https://nhapi.hzqiaoxun.com/renren-fast/sys/login";

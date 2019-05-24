@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:id="@+id/rl_user"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent">
+        <LinearLayout
+            android:id="@+id/ll_user_info"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/login_picture_bg"
+            android:orientation="vertical">
+            <EditText
+                android:id="@+id/account"
+                android:layout_height="50dp"
+                android:layout_width="match_parent"
+                android:padding="5dp"
+                android:inputType="text"
+                android:hint="账号"
+                android:background="@drawable/login_et_bg"
+                android:maxLength="18"
+                android:layout_margin="2dp"/>
+            <View
+                android:layout_height="0.5dp"
+                android:layout_width="match_parent"
+                android:background="#CBCED2"/>
+            <EditText
+                android:id="@+id/password"
+                android:layout_height="50dp"
+                android:layout_width="match_parent"
+                android:padding="5dp"
+                android:inputType="textPassword"
+                android:maxLength="18"
+                android:hint="密码"
+                android:background="@drawable/login_et_bg"
+                android:layout_margin="2dp"/>
+            <View
+                android:layout_height="0.5dp"
+                android:layout_width="match_parent"
+                android:background="#CBCED2"/>
+            <ImageView
+                android:imeOptions="actionDone"
+                android:layout_width="match_parent"
+                android:layout_height="50dp" />
+            <View
+                android:layout_height="0.5dp"
+                android:layout_width="match_parent"
+                android:background="#CBCED2"/>
+            <EditText
+                android:id="@+id/et03"
+                android:layout_height="50dp"
+                android:layout_width="match_parent"
+                android:padding="5dp"
+                android:inputType="textPassword"
+                android:maxLength="18"
+                android:hint="验证码"
+                android:background="@drawable/login_et_bg"
+                android:layout_margin="2dp"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/login"
+            android:layout_height="50dp"
+            android:layout_width="match_parent"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="25dp"
+            android:layout_marginRight="25dp"
+            android:text="登入"
+            android:layout_below="@id/ll_user_info"
+            android:background="@drawable/login_btn"
+            android:textColor="@android:color/white"/>
+    </RelativeLayout>
+
+</RelativeLayout>

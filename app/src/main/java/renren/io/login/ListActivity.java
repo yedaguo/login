@@ -45,7 +45,7 @@ public class ListActivity extends AppCompatActivity {
     private TextView textView;
     private Button button;
 
-    private String list_url = "http://47.110.63.155/renren-fast/nuohua/nhSubstitute/list";
+    private String list_url = "https://api.highboy.cn/renren-fast/nuohua/nhSubstitute/list";
     private List<Msg> msgList = new ArrayList<>();
     private JSONObject jsonObject;
 
@@ -61,7 +61,7 @@ public class ListActivity extends AppCompatActivity {
         textView = (TextView)findViewById(R.id.tv1) ;
         recyclerView = (RecyclerView) findViewById(R.id.lv_id);
         button = (Button) findViewById(R.id.bt1);
-        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.srl);
+        //swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.srl);
 
         final Intent intent = new Intent();
 
@@ -82,13 +82,13 @@ public class ListActivity extends AppCompatActivity {
 //        });
 
         //下拉刷新
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                loadData();
-                swipeRefreshLayout.setRefreshing(false);
-            }
-        });
+//        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+//            @Override
+//            public void onRefresh() {
+//                loadData();
+//                swipeRefreshLayout.setRefreshing(false);
+//            }
+//        });
 
 
 
@@ -101,7 +101,7 @@ public class ListActivity extends AppCompatActivity {
 
 
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -120,6 +120,7 @@ public class ListActivity extends AppCompatActivity {
                         switch (item.getItemId()){
                             case R.id.mu01:
                                 Toast.makeText(ListActivity.this,"修改",Toast.LENGTH_SHORT).show();
+
                                 break;
                             case R.id.mu02:
                                 Toast.makeText(ListActivity.this,"删除",Toast.LENGTH_SHORT).show();
