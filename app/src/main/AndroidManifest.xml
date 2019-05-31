@@ -18,6 +18,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+
+        <provider android:name="android.support.v4.content.FileProvider"
+            android:authorities="renren.io.login.fileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
         <activity android:name=".SkinActivity"
             android:launchMode="singleInstance">
             <intent-filter>
@@ -27,7 +35,6 @@
         </activity>
         <activity android:name=".MainActivity"
             android:launchMode="singleInstance">
-
         </activity>
         <activity android:name=".ListActivity">
         </activity>
@@ -35,6 +42,10 @@
         </activity>
         <activity android:name=".DetailsActivity">
         </activity>
+        <activity android:name=".UpdateSubstituteActivity">
+        </activity>
+
+
 
     </application>
 

@@ -1,18 +1,32 @@
 package renren.io.login;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Looper;
+import android.os.StrictMode;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -30,9 +44,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import renren.io.utils.SharedPreferencesUtil;
 
@@ -66,6 +82,16 @@ public class AddSubstituteActivity extends Activity {
 
     private String Add_Url = "https://api.highboy.cn/renren-fast/nuohua/nhSubstitute/save";
 
+    private static final int TAKE_PHOTO = 11;// 拍照
+    private static final int CROP_PHOTO = 12;// 裁剪图片
+    private static final int LOCAL_CROP = 13;// 本地图库
+
+    private Uri imageUri;// 拍照时的图片uri
+
+
+    private String mFilePath = Environment.getExternalStorageDirectory().getPath() + "/" +
+            String.valueOf(System.currentTimeMillis()) + "photo.jpg";
+
 
 
     @Override
@@ -89,7 +115,9 @@ public class AddSubstituteActivity extends Activity {
         et09 = (EditText) findViewById(R.id.et09);
         et10 = (EditText) findViewById(R.id.et10);
 
-
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
+        builder.detectFileUriExposure();
 
         final Intent intent = new Intent();
         btn01.setOnClickListener(new View.OnClickListener() {
@@ -191,20 +219,20 @@ public class AddSubstituteActivity extends Activity {
         img01.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showPopupWindow();
+                showPopupWindow(img01);
 
             }
         });
         img02.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showPopupWindow();
+                showPopupWindow(img02);
 
             }
         });
 
     }
-    private void showPopupWindow(){
+    private void showPopupWindow(ImageView imageView){
         View popView = View.inflate(this,R.layout.popupwindow_camera_local,null);
         Button bt_album = (Button) popView.findViewById(R.id.btn01);
         Button bt_camera = (Button) popView.findViewById(R.id.btn02);
@@ -222,17 +250,44 @@ public class AddSubstituteActivity extends Activity {
         bt_album.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(AddSubstituteActivity.this,"拍照",Toast.LENGTH_SHORT).show();
                 popupWindow.dismiss();
-
+                if (ContextCompat.checkSelfPermission(AddSubstituteActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
+                    ActivityCompat.requestPermissions(AddSubstituteActivity.this,new String[]{
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+                }else {
+                    openAlbum();
+                }
             }
         });
         bt_camera.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                Toast.makeText(AddSubstituteActivity.this,"本地文件",Toast.LENGTH_SHORT).show();
+            public void  onClick(View v) {
                 popupWindow.dismiss();
+                //创建File对象 用于存储拍照后的图片
+                //Environment.getExternalStorageDirectory() 内部存储
+                //getExternalCacheDir() 外部存储        内部存储更保险 不会因为cd卡被拔丢失  不太重要的存外部存储   灵活运用 不要纠结
+                File outputImage=new File(Environment.getExternalStorageDirectory(),"output_image.jpg");
+                //file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+ "/test/" + System.currentTimeMillis() + ".jpg");
 
+                try {
+                    if (outputImage.exists()){
+                        outputImage.delete();
+                    }
+                    //创建新的File对象
+                    outputImage.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (Build.VERSION.SDK_INT>=24){
+                    //第一个参数是content  第二个参数是 任意的唯一的字符串  第三个参数是File对象     FileProvider是一个特殊的内容提供者需在AndroidManifest中注册
+                    imageUri=FileProvider.getUriForFile(AddSubstituteActivity.this,"renren.io.login.fileProvider",outputImage);
+                }else {
+                    imageUri=Uri.fromFile(outputImage);
+                }
+                //启动相机程序
+                Intent intent=new Intent("android.media.action.IMAGE_CAPTURE");
+                intent.putExtra(MediaStore.EXTRA_OUTPUT,imageUri);
+                startActivityForResult(intent,TAKE_PHOTO);
             }
         });
         bt_cancel.setOnClickListener(new View.OnClickListener() {
@@ -256,6 +311,103 @@ public class AddSubstituteActivity extends Activity {
         lp.alpha = 0.5f;
         getWindow().setAttributes(lp);
         popupWindow.showAtLocation(popView, Gravity.BOTTOM,0,50);
-
     }
+
+    /**
+     * 打开相册
+     */
+    private void openAlbum(){
+
+        Intent intent=new Intent("android.intent.action.GET_CONTENT");
+        intent.setType("image/*");
+        startActivityForResult(intent,LOCAL_CROP);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode){
+            case 1:
+                if (grantResults.length>0&& grantResults[0]==PackageManager.PERMISSION_GRANTED){
+                    openAlbum();
+                }else {
+                    Toast.makeText(this,"你已经拒绝了权限",Toast.LENGTH_SHORT).show();
+                }
+                break;
+            default:
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode){
+            case TAKE_PHOTO:
+                if (resultCode==RESULT_OK){
+                    try {
+                        Bitmap bitmap=BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
+                        img01.setImageBitmap(bitmap);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+
+            case LOCAL_CROP:
+                if (resultCode==RESULT_OK){
+                    //4.4级以上系统使用这个方法处理图片
+                    HandleImageOnKitKat(data);
+                }
+            default:
+                break;
+        }
+    }
+
+    private void HandleImageOnKitKat(Intent data){
+        String imagePath=null;
+        Uri uri=data.getData();
+        if (DocumentsContract.isDocumentUri(this,uri)){
+            //如果是document类型的Uri，则通过document id处理
+            String docid=DocumentsContract.getDocumentId(uri);
+            if ("com.android.providers.media.documents".equals(uri.getAuthority())){
+                //解析出数字格式的id
+                String id=docid.split(":")[1];
+                String selection =MediaStore.Images.Media._ID+"="+id;
+                imagePath=getImagePath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,selection);
+            }else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())){
+                Uri contentUri=ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"),Long.valueOf(docid));
+                imagePath=getImagePath(contentUri,null);
+            }
+        }else if ("content".equalsIgnoreCase(uri.getScheme())){
+            //如果是cotent类型的Uri，则使用普通方式处理
+            imagePath=getImagePath(uri,null);
+        }else if ("file".equalsIgnoreCase(uri.getScheme())){
+            imagePath=uri.getPath();
+        }
+        //根据图片路径显示图片
+        displayImage(imagePath);
+    }
+
+    private String getImagePath(Uri uri,String selection){
+        String path=null;
+        //通过Uri和selection来获取真实的图片路径
+        Cursor cursor=getContentResolver().query(uri,null,selection,null,null);
+        if (cursor!=null){
+            if (cursor.moveToFirst()){
+                path=cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+            }
+            cursor.close();
+        }
+        return  path;
+    }
+    private void displayImage(String imagePath){
+        if (imagePath!=null){
+            Bitmap bitmap=BitmapFactory.decodeFile(imagePath);
+            img01.setImageBitmap(bitmap);
+        }else {
+            Toast.makeText(this,"获取图片失败",Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
 }

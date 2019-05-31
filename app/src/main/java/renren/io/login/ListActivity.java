@@ -111,7 +111,7 @@ public class ListActivity extends AppCompatActivity {
         listViewAdapter.setOnItemClickListener(new ListViewAdapter.OnItemClickListener() {
             //长按
             @Override
-            public void onItemLongClick(View view, int pos) {
+            public void onItemLongClick(View view, final int pos) {
                 PopupMenu popupMenu = new PopupMenu(ListActivity.this,view);
                 popupMenu.getMenuInflater().inflate(R.menu.meun_shezhi02,popupMenu.getMenu());
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -120,7 +120,9 @@ public class ListActivity extends AppCompatActivity {
                         switch (item.getItemId()){
                             case R.id.mu01:
                                 Toast.makeText(ListActivity.this,"修改",Toast.LENGTH_SHORT).show();
-
+                                intent.setClass(ListActivity.this,UpdateSubstituteActivity.class);
+                                intent.putExtra("1",jsonObject.getJSONArray("nhSubstituteList").getJSONObject(pos).toString());
+                                startActivity(intent);
                                 break;
                             case R.id.mu02:
                                 Toast.makeText(ListActivity.this,"删除",Toast.LENGTH_SHORT).show();
