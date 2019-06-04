@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--xml一定要写resources方法-->
 <resources>
-    <paths>
-        <external-path path="" name="camera_photos"/>
-    </paths>
+    <external-path
+        name="images"
+        path="."/>
 </resources>

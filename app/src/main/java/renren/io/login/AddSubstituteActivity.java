@@ -2,24 +2,18 @@ package renren.io.login;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.ContentUris;
-import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Looper;
 import android.os.StrictMode;
-import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -44,8 +38,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -82,11 +74,17 @@ public class AddSubstituteActivity extends Activity {
 
     private String Add_Url = "https://api.highboy.cn/renren-fast/nuohua/nhSubstitute/save";
 
-    private static final int TAKE_PHOTO = 11;// 拍照
-    private static final int CROP_PHOTO = 12;// 裁剪图片
-    private static final int LOCAL_CROP = 13;// 本地图库
+    private static final String TAG = "AddSubstituteActivity";
+    private static final int REQUEST_TAKE_PHOTO = 0;// 拍照
+    private static final int REQUEST_CROP = 1;// 裁剪
+    private static final int SCAN_OPEN_PHONE = 2;// 相册
+    private static final int REQUEST_PERMISSION = 100;
 
-    private Uri imageUri;// 拍照时的图片uri
+    private Uri imgUri; // 拍照时返回的uri
+    private Uri mCutUri;// 图片裁剪时返回的uri
+    private boolean hasPermission = false;
+    private File imgFile;// 拍照保存的图片文件
+    private boolean click = false;
 
 
     private String mFilePath = Environment.getExternalStorageDirectory().getPath() + "/" +
@@ -219,20 +217,22 @@ public class AddSubstituteActivity extends Activity {
         img01.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showPopupWindow(img01);
+                click = false;
+                showPopupWindow();
 
             }
         });
         img02.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showPopupWindow(img02);
+                click = true;
+                showPopupWindow();
 
             }
         });
 
     }
-    private void showPopupWindow(ImageView imageView){
+    private void showPopupWindow(){
         View popView = View.inflate(this,R.layout.popupwindow_camera_local,null);
         Button bt_album = (Button) popView.findViewById(R.id.btn01);
         Button bt_camera = (Button) popView.findViewById(R.id.btn02);
@@ -251,11 +251,9 @@ public class AddSubstituteActivity extends Activity {
             @Override
             public void onClick(View v) {
                 popupWindow.dismiss();
-                if (ContextCompat.checkSelfPermission(AddSubstituteActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
-                    ActivityCompat.requestPermissions(AddSubstituteActivity.this,new String[]{
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
-                }else {
-                    openAlbum();
+                checkPermissions();
+                if (hasPermission) {
+                    openGallery();
                 }
             }
         });
@@ -263,31 +261,10 @@ public class AddSubstituteActivity extends Activity {
             @Override
             public void  onClick(View v) {
                 popupWindow.dismiss();
-                //创建File对象 用于存储拍照后的图片
-                //Environment.getExternalStorageDirectory() 内部存储
-                //getExternalCacheDir() 外部存储        内部存储更保险 不会因为cd卡被拔丢失  不太重要的存外部存储   灵活运用 不要纠结
-                File outputImage=new File(Environment.getExternalStorageDirectory(),"output_image.jpg");
-                //file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+ "/test/" + System.currentTimeMillis() + ".jpg");
-
-                try {
-                    if (outputImage.exists()){
-                        outputImage.delete();
-                    }
-                    //创建新的File对象
-                    outputImage.createNewFile();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                checkPermissions();
+                if (hasPermission) {
+                    takePhoto();
                 }
-                if (Build.VERSION.SDK_INT>=24){
-                    //第一个参数是content  第二个参数是 任意的唯一的字符串  第三个参数是File对象     FileProvider是一个特殊的内容提供者需在AndroidManifest中注册
-                    imageUri=FileProvider.getUriForFile(AddSubstituteActivity.this,"renren.io.login.fileProvider",outputImage);
-                }else {
-                    imageUri=Uri.fromFile(outputImage);
-                }
-                //启动相机程序
-                Intent intent=new Intent("android.media.action.IMAGE_CAPTURE");
-                intent.putExtra(MediaStore.EXTRA_OUTPUT,imageUri);
-                startActivityForResult(intent,TAKE_PHOTO);
             }
         });
         bt_cancel.setOnClickListener(new View.OnClickListener() {
@@ -313,101 +290,170 @@ public class AddSubstituteActivity extends Activity {
         popupWindow.showAtLocation(popView, Gravity.BOTTOM,0,50);
     }
 
-    /**
-     * 打开相册
-     */
-    private void openAlbum(){
-
-        Intent intent=new Intent("android.intent.action.GET_CONTENT");
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
-        startActivityForResult(intent,LOCAL_CROP);
+        startActivityForResult(intent, SCAN_OPEN_PHONE);
+    }
+
+
+    private void checkPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // 检查是否有存储和拍照权限
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                    && checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                hasPermission = true;
+            } else {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA}, REQUEST_PERMISSION);
+            }
+        }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode){
-            case 1:
-                if (grantResults.length>0&& grantResults[0]==PackageManager.PERMISSION_GRANTED){
-                    openAlbum();
-                }else {
-                    Toast.makeText(this,"你已经拒绝了权限",Toast.LENGTH_SHORT).show();
-                }
-                break;
-            default:
+        if (requestCode == REQUEST_PERMISSION) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                hasPermission = true;
+            } else {
+                Toast.makeText(this, "权限授予失败！", Toast.LENGTH_SHORT).show();
+                hasPermission = false;
+            }
         }
+    }
+
+    // 拍照
+    private void takePhoto() {
+        // 要保存的文件名
+        String time = new SimpleDateFormat("yyyyMMddHHmmss", Locale.CHINA).format(new Date());
+        String fileName = "photo_" + time;
+        // 创建一个文件夹
+        String path = Environment.getExternalStorageDirectory() + "/take_photo";
+        File file = new File(path);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        // 要保存的图片文件
+        imgFile = new File(file, fileName + ".jpeg");
+        // 将file转换成uri
+        // 注意7.0及以上与之前获取的uri不一样了，返回的是provider路径
+        imgUri = getUriForFile(this, imgFile);
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // 添加Uri读取权限
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        // 或者
+//        grantUriPermission("com.rain.takephotodemo", imgUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        // 添加图片保存位置
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, imgUri);
+        intent.putExtra("return-data", false);
+        startActivityForResult(intent, REQUEST_TAKE_PHOTO);
+    }
+
+    // 图片裁剪
+    private void cropPhoto(Uri uri, boolean fromCapture) {
+        Intent intent = new Intent("com.android.camera.action.CROP"); //打开系统自带的裁剪图片的intent
+        intent.setDataAndType(uri, "image/*");
+        intent.putExtra("crop", "true");
+
+        // 注意一定要添加该项权限，否则会提示无法裁剪
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+        intent.putExtra("scale", true);
+
+        // 设置裁剪区域的宽高比例
+        intent.putExtra("aspectX", 1);
+        intent.putExtra("aspectY", 1);
+
+        // 设置裁剪区域的宽度和高度
+        intent.putExtra("outputX", 200);
+        intent.putExtra("outputY", 200);
+
+        // 取消人脸识别
+        intent.putExtra("noFaceDetection", true);
+        // 图片输出格式
+        intent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
+
+        // 若为false则表示不返回数据
+        intent.putExtra("return-data", false);
+
+        // 指定裁剪完成以后的图片所保存的位置,pic info显示有延时
+        if (fromCapture) {
+            // 如果是使用拍照，那么原先的uri和最终目标的uri一致,注意这里的uri必须是Uri.fromFile生成的
+            mCutUri = Uri.fromFile(imgFile);
+        } else { // 从相册中选择，那么裁剪的图片保存在take_photo中
+            String time = new SimpleDateFormat("yyyyMMddHHmmss", Locale.CHINA).format(new Date());
+            String fileName = "photo_" + time;
+            File mCutFile = new File(Environment.getExternalStorageDirectory() + "/take_photo/", fileName + ".jpeg");
+            if (!mCutFile.getParentFile().exists()) {
+                mCutFile.getParentFile().mkdirs();
+            }
+            mCutUri = Uri.fromFile(mCutFile);
+        }
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, mCutUri);
+        Toast.makeText(this, "剪裁图片", Toast.LENGTH_SHORT).show();
+        // 以广播方式刷新系统相册，以便能够在相册中找到刚刚所拍摄和裁剪的照片
+        Intent intentBc = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        intentBc.setData(uri);
+        this.sendBroadcast(intentBc);
+
+        startActivityForResult(intent, REQUEST_CROP); //设置裁剪参数显示图片至ImageVie
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode){
-            case TAKE_PHOTO:
-                if (resultCode==RESULT_OK){
-                    try {
-                        Bitmap bitmap=BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
-                        img01.setImageBitmap(bitmap);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                // 拍照并进行裁剪
+                case REQUEST_TAKE_PHOTO:
+                    Log.e(TAG, "onActivityResult: imgUri:REQUEST_TAKE_PHOTO:" + imgUri.toString());
+                    cropPhoto(imgUri, true);
+                    break;
+
+                // 裁剪后设置图片
+                case REQUEST_CROP:
+                    if (click){
+                        img02.setImageURI(mCutUri);
+                    }else {
+                        img01.setImageURI(mCutUri);
                     }
-                }
-                break;
 
-            case LOCAL_CROP:
-                if (resultCode==RESULT_OK){
-                    //4.4级以上系统使用这个方法处理图片
-                    HandleImageOnKitKat(data);
-                }
-            default:
-                break;
-        }
-    }
+                    Log.e(TAG, "onActivityResult: imgUri:REQUEST_CROP:" + mCutUri.toString());
+                    break;
+                // 打开图库获取图片并进行裁剪
+                case SCAN_OPEN_PHONE:
+                    Log.e(TAG, "onActivityResult: SCAN_OPEN_PHONE:" + data.getData().toString());
+                    cropPhoto(data.getData(), false);
+                    break;
 
-    private void HandleImageOnKitKat(Intent data){
-        String imagePath=null;
-        Uri uri=data.getData();
-        if (DocumentsContract.isDocumentUri(this,uri)){
-            //如果是document类型的Uri，则通过document id处理
-            String docid=DocumentsContract.getDocumentId(uri);
-            if ("com.android.providers.media.documents".equals(uri.getAuthority())){
-                //解析出数字格式的id
-                String id=docid.split(":")[1];
-                String selection =MediaStore.Images.Media._ID+"="+id;
-                imagePath=getImagePath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,selection);
-            }else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())){
-                Uri contentUri=ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"),Long.valueOf(docid));
-                imagePath=getImagePath(contentUri,null);
+                default:
+                    break;
             }
-        }else if ("content".equalsIgnoreCase(uri.getScheme())){
-            //如果是cotent类型的Uri，则使用普通方式处理
-            imagePath=getImagePath(uri,null);
-        }else if ("file".equalsIgnoreCase(uri.getScheme())){
-            imagePath=uri.getPath();
         }
-        //根据图片路径显示图片
-        displayImage(imagePath);
     }
 
-    private String getImagePath(Uri uri,String selection){
-        String path=null;
-        //通过Uri和selection来获取真实的图片路径
-        Cursor cursor=getContentResolver().query(uri,null,selection,null,null);
-        if (cursor!=null){
-            if (cursor.moveToFirst()){
-                path=cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
-            }
-            cursor.close();
+    // 从file中获取uri
+    // 7.0及以上使用的uri是contentProvider content://com.rain.takephotodemo.FileProvider/images/photo_20180824173621.jpg
+    // 6.0使用的uri为file:///storage/emulated/0/take_photo/photo_20180824171132.jpg
+    private static Uri getUriForFile(Context context, File file) {
+        if (context == null || file == null) {
+            throw new NullPointerException();
         }
-        return  path;
-    }
-    private void displayImage(String imagePath){
-        if (imagePath!=null){
-            Bitmap bitmap=BitmapFactory.decodeFile(imagePath);
-            img01.setImageBitmap(bitmap);
-        }else {
-            Toast.makeText(this,"获取图片失败",Toast.LENGTH_SHORT).show();
+        Uri uri;
+        if (Build.VERSION.SDK_INT >= 24) {
+            uri = FileProvider.getUriForFile(context.getApplicationContext(), "renren.io.login.fileProvider", file);
+        } else {
+            uri = Uri.fromFile(file);
         }
+        return uri;
     }
+
+
+
+
+
 
 
 }
