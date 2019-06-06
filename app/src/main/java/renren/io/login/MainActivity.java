@@ -131,10 +131,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         }
                         Looper.loop();
 
-                    }else {
-                        Looper.prepare();
-                        Toast.makeText(MainActivity.this,"用户名或密码不正确",Toast.LENGTH_SHORT).show();
-                        Looper.loop();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

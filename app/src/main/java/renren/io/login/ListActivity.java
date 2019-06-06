@@ -228,16 +228,24 @@ public class ListActivity extends AppCompatActivity {
                         System.out.println(result);
                         jsonObject = JSONObject.parseObject(result);
                         if(jsonObject.getString("code").equals("0")){
-                            JSONArray jsonArray = jsonObject.getJSONArray("nhSubstituteList");
-                            for (int i = 0; i < jsonArray.size(); i++) {
-                                JSONObject subObject = jsonArray.getJSONObject(i);
-                                Msg msg = new Msg();
-                                msg.setTest01(subObject.getString("personnelName"));
-                                System.out.println(subObject.getString("personnelName"));
-                                msg.setTest02(subObject.getString("idCard"));
-                                msgList.add(msg);
+                            JSONObject jsonObject1 = jsonObject.getJSONObject("page");
+                            JSONArray jsonArray = jsonObject1.getJSONArray("list");
+                            if(jsonArray.isEmpty()||jsonArray.size() < 1){
+                                Looper.prepare();
+                                Toast.makeText(ListActivity.this,"暂无代班订单",Toast.LENGTH_SHORT).show();
+                                Looper.loop();
 
+                            }else {
+                                for (int i = 0; i < jsonArray.size(); i++) {
+                                    JSONObject subObject = jsonArray.getJSONObject(i);
+                                    Msg msg = new Msg();
+                                    msg.setTest01(subObject.getString("personnelName"));
+                                    System.out.println(subObject.getString("personnelName"));
+                                    msg.setTest02(subObject.getString("idCard"));
+                                    msgList.add(msg);
+                                }
                             }
+
 
                         }
                     }

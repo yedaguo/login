@@ -37,12 +37,27 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import renren.io.utils.SharedPreferencesUtil;
+import renren.io.utils.UploadImg;
 
 public class AddSubstituteActivity extends Activity {
     private EditText et;
@@ -73,6 +88,7 @@ public class AddSubstituteActivity extends Activity {
     private String signature;
 
     private String Add_Url = "https://api.highboy.cn/renren-fast/nuohua/nhSubstitute/save";
+    private String Upload_Url = "https://api.highboy.cn/renren-fast/nuohua/nhSubstitute/upload";
 
     private static final String TAG = "AddSubstituteActivity";
     private static final int REQUEST_TAKE_PHOTO = 0;// 拍照
@@ -86,9 +102,14 @@ public class AddSubstituteActivity extends Activity {
     private File imgFile;// 拍照保存的图片文件
     private boolean click = false;
 
+    private String fileName;
 
-    private String mFilePath = Environment.getExternalStorageDirectory().getPath() + "/" +
-            String.valueOf(System.currentTimeMillis()) + "photo.jpg";
+    private String imgUri1;
+    private String imgUri2;
+    private File file;
+
+    private String imgUrl;
+
 
 
 
@@ -141,11 +162,14 @@ public class AddSubstituteActivity extends Activity {
                 orderNum = et09.getText().toString().trim();
                 signature = et10.getText().toString().trim();
 
+
+
                 if(TextUtils.isEmpty(personnelName)||TextUtils.isEmpty(idCard)||TextUtils.isEmpty(num)||TextUtils.isEmpty(chargeunitPrice)||TextUtils.isEmpty(basicWage)||
                         TextUtils.isEmpty(employeeId)||TextUtils.isEmpty(tranches)||TextUtils.isEmpty(sectionNumber)||TextUtils.isEmpty(orderNum)||TextUtils.isEmpty(signature)){
                     Toast.makeText(AddSubstituteActivity.this,"所以有条件不能为空",Toast.LENGTH_SHORT).show();
                     return;
                 }
+
 
                 final JSONObject jsonParam = new JSONObject();
                 jsonParam.put("personnelName",personnelName);
@@ -158,8 +182,8 @@ public class AddSubstituteActivity extends Activity {
                 jsonParam.put("sectionNumber",sectionNumber);
                 jsonParam.put("orderNum",orderNum);
                 jsonParam.put("signature",signature);
-                jsonParam.put("personnelPic","1");
-                jsonParam.put("payPic","2");
+                jsonParam.put("personnelPic",imgUri1);
+                jsonParam.put("payPic",imgUri2);
                 jsonParam.put("paymentStatus",1);
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
                 jsonParam.put("billingDate",df.format(new Date()));
@@ -189,7 +213,6 @@ public class AddSubstituteActivity extends Activity {
                                 if(jsonObject.getString("code").equals("0")){
                                     Looper.prepare();
                                     Toast.makeText(AddSubstituteActivity.this,"添加成功",Toast.LENGTH_SHORT).show();
-
                                     intent.setClass(AddSubstituteActivity.this,ListActivity.class);
                                     startActivity(intent);
                                     finish();
@@ -217,7 +240,7 @@ public class AddSubstituteActivity extends Activity {
         img01.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                click = false;
+                click = true;
                 showPopupWindow();
 
             }
@@ -225,13 +248,63 @@ public class AddSubstituteActivity extends Activity {
         img02.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                click = true;
+                click = false;
                 showPopupWindow();
 
             }
         });
 
     }
+
+    private void uploadFile(final File file,final String fileName){
+
+        new Thread(){
+            @Override
+            public void run() {
+                super.run();
+                //1.创建对应的MediaType
+                MediaType MEDIA_TYPE_PNG = MediaType.parse("image/png");
+                OkHttpClient client = new OkHttpClient();
+                //2.创建RequestBody
+                RequestBody fileBody = RequestBody.create(MEDIA_TYPE_PNG, file);
+
+                //3.构建MultipartBody
+                RequestBody requestBody = new MultipartBody.Builder()
+                        .setType(MultipartBody.FORM)
+                        .addFormDataPart("file", fileName, fileBody)
+                        .addFormDataPart("token", (String) SharedPreferencesUtil.getData("MyDemo","token",""))
+                        .build();
+
+                //4.构建请求
+                Request request = new Request.Builder()
+                        .url(Upload_Url)
+                        .post(requestBody)
+                        .build();
+
+                //5.发送请求
+                try {
+                    Response response = client.newCall(request).execute();
+                    JSONObject jsonObject = JSONObject.parseObject(response.body().string());
+                    if(jsonObject.getString("code").equals("0")){
+                        System.out.println(jsonObject.getString("url"));
+                            imgUrl = jsonObject.getString("url");
+                    }else {
+                        Looper.prepare();
+                        Toast.makeText(AddSubstituteActivity.this,"上传图片失败",Toast.LENGTH_SHORT).show();
+                        Looper.loop();
+                    }
+
+
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+        }.start();
+    }
+
     private void showPopupWindow(){
         View popView = View.inflate(this,R.layout.popupwindow_camera_local,null);
         Button bt_album = (Button) popView.findViewById(R.id.btn01);
@@ -335,7 +408,7 @@ public class AddSubstituteActivity extends Activity {
             file.mkdirs();
         }
         // 要保存的图片文件
-        imgFile = new File(file, fileName + ".jpeg");
+        imgFile = new File(file, fileName + ".jpg");
         // 将file转换成uri
         // 注意7.0及以上与之前获取的uri不一样了，返回的是provider路径
         imgUri = getUriForFile(this, imgFile);
@@ -384,8 +457,8 @@ public class AddSubstituteActivity extends Activity {
             mCutUri = Uri.fromFile(imgFile);
         } else { // 从相册中选择，那么裁剪的图片保存在take_photo中
             String time = new SimpleDateFormat("yyyyMMddHHmmss", Locale.CHINA).format(new Date());
-            String fileName = "photo_" + time;
-            File mCutFile = new File(Environment.getExternalStorageDirectory() + "/take_photo/", fileName + ".jpeg");
+            fileName = "photo_" + time + ".jpg";
+            File mCutFile = new File(Environment.getExternalStorageDirectory() + "/take_photo/", fileName);
             if (!mCutFile.getParentFile().exists()) {
                 mCutFile.getParentFile().mkdirs();
             }
@@ -415,9 +488,27 @@ public class AddSubstituteActivity extends Activity {
                 // 裁剪后设置图片
                 case REQUEST_CROP:
                     if (click){
-                        img02.setImageURI(mCutUri);
-                    }else {
                         img01.setImageURI(mCutUri);
+                        file = new File(mCutUri.getPath());
+                        uploadFile(file,fileName);
+                        try {
+                            Thread.sleep(2000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        imgUri1 = imgUrl;
+                        System.out.println("wosi "+imgUri1);
+
+                    }else {
+                        img02.setImageURI(mCutUri);
+                        file = new File(mCutUri.getPath());
+                        uploadFile(file,fileName);
+                        try {
+                            Thread.sleep(2000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        imgUri2 = imgUrl;
                     }
 
                     Log.e(TAG, "onActivityResult: imgUri:REQUEST_CROP:" + mCutUri.toString());
