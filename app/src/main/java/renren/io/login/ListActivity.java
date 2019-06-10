@@ -46,6 +46,7 @@ public class ListActivity extends AppCompatActivity {
     private Button button;
 
     private String list_url = "https://api.highboy.cn/renren-fast/nuohua/nhSubstitute/list";
+    private String delete_url = "https://api.highboy.cn/renren-fast/nuohua/nhSubstitute/delete";
     private List<Msg> msgList = new ArrayList<>();
     private JSONObject jsonObject;
 
@@ -121,11 +122,51 @@ public class ListActivity extends AppCompatActivity {
                             case R.id.mu01:
                                 Toast.makeText(ListActivity.this,"修改",Toast.LENGTH_SHORT).show();
                                 intent.setClass(ListActivity.this,UpdateSubstituteActivity.class);
-                                intent.putExtra("1",jsonObject.getJSONArray("nhSubstituteList").getJSONObject(pos).toString());
+                                intent.putExtra("1",jsonObject.getJSONObject("page").getJSONArray("list").getJSONObject(pos).toString());
                                 startActivity(intent);
                                 break;
                             case R.id.mu02:
                                 Toast.makeText(ListActivity.this,"删除",Toast.LENGTH_SHORT).show();
+                                final JSONObject jsonParam = new JSONObject();
+                                jsonParam.put("id",jsonObject.getJSONObject("page").getJSONArray("list").getJSONObject(pos).getString("id"));
+                                new Thread(){
+                                    @Override
+                                    public void run() {
+                                        HttpClient client = new DefaultHttpClient();
+                                        HttpPost post = new HttpPost(delete_url);
+                                        StringEntity entity;
+                                        try {
+                                            entity = new StringEntity(jsonParam.toString(), "UTF-8");
+                                            System.out.println(jsonParam.toString());
+                                            entity.setContentEncoding("UTF-8");
+                                            entity.setContentType("application/json");
+                                            post.setEntity(entity);
+                                            System.out.println(SharedPreferencesUtil.getData("MyDemo", "token", ""));
+                                            post.setHeader("token", (String) SharedPreferencesUtil.getData("MyDemo", "token", ""));
+                                            HttpResponse response = client.execute(post);
+                                            System.out.println(response.getStatusLine().getStatusCode());
+                                            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                                                String result = EntityUtils.toString(response.getEntity());
+                                                System.out.println(result);
+                                                JSONObject jsonObject = JSONObject.parseObject(result);
+                                                if (jsonObject.getString("code").equals("0")) {
+                                                    Looper.prepare();
+                                                    Toast.makeText(ListActivity.this, "删除成功", Toast.LENGTH_SHORT).show();
+                                                    Looper.loop();
+                                                }
+
+                                                //401没有token返回登录界面,需要登录
+                                            } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                                                intent.setClass(ListActivity.this, MainActivity.class);
+                                                startActivity(intent);
+                                                finish();
+
+                                            }
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }.start();
                                 break;
                         }
                         return true;
@@ -139,7 +180,7 @@ public class ListActivity extends AppCompatActivity {
             @Override
             public void onItemLClick(View view, int pos) {
                 intent.setClass(ListActivity.this,DetailsActivity.class);
-                intent.putExtra("1",jsonObject.getJSONArray("nhSubstituteList").getJSONObject(pos).toString());
+                intent.putExtra("1",jsonObject.getJSONObject("page").getJSONArray("list").getJSONObject(pos).toString());
                 startActivity(intent);
             }
         });
@@ -245,7 +286,6 @@ public class ListActivity extends AppCompatActivity {
                                     msgList.add(msg);
                                 }
                             }
-
 
                         }
                     }

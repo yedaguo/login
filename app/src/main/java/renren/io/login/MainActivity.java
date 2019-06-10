@@ -112,6 +112,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         //System.out.println("woshi "+StreamTools.readString(in));
                         JSONObject jsonObject = JSONObject.parseObject(content);
                         System.out.println("code:"+jsonObject.getString("code"));
+                        System.out.println(jsonObject.toString());
                         Looper.prepare();
                         if(jsonObject.getString("code").equals("0")){
                             SharedPreferencesUtil.saveData("MyDemo","username",username);
@@ -121,12 +122,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
                             Toast.makeText(MainActivity.this,"登录成功",Toast.LENGTH_SHORT).show();
 
                             Intent it = new Intent();
-                            it.setClass(MainActivity.this, renren.io.login.ListActivity.class);
+                            it.setClass(MainActivity.this, ListActivity.class);
                             startActivity(it);
                             finish();
 
-                        }else if (jsonObject.getString("code").equals("500")&&jsonObject.getString("msg").equals("账号或密码不正确")){
-                            Toast.makeText(MainActivity.this,"账号或密码不正确",Toast.LENGTH_SHORT).show();
+                        }else if (jsonObject.getString("code").equals("500")){
+                            Toast.makeText(MainActivity.this,jsonObject.getString("msg"),Toast.LENGTH_SHORT).show();
+                            et_password.setText("");
+                        }else if (jsonObject.getString("code").equals("401")){
+                            Toast.makeText(MainActivity.this,jsonObject.getString("msg"),Toast.LENGTH_SHORT).show();
                             et_password.setText("");
                         }
                         Looper.loop();

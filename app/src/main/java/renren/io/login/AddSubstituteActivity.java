@@ -87,7 +87,7 @@ public class AddSubstituteActivity extends Activity {
     private String orderNum;
     private String signature;
 
-    private String Add_Url = "https://api.highboy.cn/renren-fast/nuohua/nhSubstitute/save";
+    private String Add_Url = "http://api.highboy.cn/renren-fast/nuohua/nhSubstitute/save";
     private String Upload_Url = "https://api.highboy.cn/renren-fast/nuohua/nhSubstitute/upload";
 
     private static final String TAG = "AddSubstituteActivity";
@@ -169,6 +169,7 @@ public class AddSubstituteActivity extends Activity {
                     Toast.makeText(AddSubstituteActivity.this,"所以有条件不能为空",Toast.LENGTH_SHORT).show();
                     return;
                 }
+
 
 
                 final JSONObject jsonParam = new JSONObject();
@@ -540,10 +541,6 @@ public class AddSubstituteActivity extends Activity {
         }
         return uri;
     }
-
-
-
-
 
 
 
