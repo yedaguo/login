@@ -30,6 +30,7 @@
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="30dp"
+                android:layout_marginLeft="10dp"
                 android:text="姓名:"
                 android:textSize="20dp"
                 />
@@ -46,6 +47,7 @@
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="30dp"
+                android:layout_marginLeft="10dp"
                 android:text="身份证:"
                 android:textSize="20dp"
                 />
@@ -62,6 +64,7 @@
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="30dp"
+                android:layout_marginLeft="10dp"
                 android:text="人员照片:"
                 android:textSize="20dp"
                 />
@@ -77,6 +80,7 @@
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="30dp"
+                android:layout_marginLeft="10dp"
                 android:text="计酬单:"
                 android:textSize="20dp"
                 />
@@ -92,6 +96,7 @@
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="30dp"
+                android:layout_marginLeft="10dp"
                 android:text="数量:"
                 android:textSize="20dp"
                 />
@@ -108,6 +113,7 @@
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="30dp"
+                android:layout_marginLeft="10dp"
                 android:text="代办单价:"
                 android:textSize="20dp"
                 />
@@ -124,6 +130,7 @@
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="30dp"
+                android:layout_marginLeft="10dp"
                 android:text="基本工价:"
                 android:textSize="20dp"
                 />
@@ -140,6 +147,7 @@
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="30dp"
+                android:layout_marginLeft="10dp"
                 android:text="工序号:"
                 android:textSize="20dp"
                 />
@@ -156,6 +164,7 @@
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="30dp"
+                android:layout_marginLeft="10dp"
                 android:text="组别:"
                 android:textSize="20dp"
                 />
@@ -172,6 +181,7 @@
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="30dp"
+                android:layout_marginLeft="10dp"
                 android:text="款号:"
                 android:textSize="20dp"
                 />
@@ -188,6 +198,7 @@
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="30dp"
+                android:layout_marginLeft="10dp"
                 android:text="订单号:"
                 android:textSize="20dp"
                 />
@@ -204,6 +215,7 @@
             <TextView
                 android:layout_width="100dp"
                 android:layout_height="30dp"
+                android:layout_marginLeft="10dp"
                 android:text="批核签字:"
                 android:textSize="20dp"
                 />

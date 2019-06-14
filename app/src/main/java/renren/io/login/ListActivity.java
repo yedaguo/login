@@ -51,6 +51,7 @@ public class ListActivity extends AppCompatActivity {
     private JSONObject jsonObject;
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +74,8 @@ public class ListActivity extends AppCompatActivity {
         }
 
         loadData();
+
+
         //初始状态
 //        swipeRefreshLayout .post(new Runnable() {
 //            @Override
@@ -94,7 +97,7 @@ public class ListActivity extends AppCompatActivity {
 
 
 
-        ListViewAdapter listViewAdapter = new ListViewAdapter(msgList,ListActivity.this);
+        final ListViewAdapter listViewAdapter = new ListViewAdapter(msgList,ListActivity.this);
         recyclerView.setLayoutManager(new LinearLayoutManager(ListActivity.this,LinearLayoutManager.VERTICAL,false));//横向布局
         //recyclerView.setItemAnimator(new DefaultItemAnimator());//默认动画
         //将adapter和listView邦定
@@ -127,8 +130,9 @@ public class ListActivity extends AppCompatActivity {
                                 break;
                             case R.id.mu02:
                                 Toast.makeText(ListActivity.this,"删除",Toast.LENGTH_SHORT).show();
-                                final JSONObject jsonParam = new JSONObject();
-                                jsonParam.put("id",jsonObject.getJSONObject("page").getJSONArray("list").getJSONObject(pos).getString("id"));
+                                final JSONArray jsonArray = new JSONArray();
+                                jsonArray.add(jsonObject.getJSONObject("page").getJSONArray("list").getJSONObject(pos).getString("id"));
+                                System.out.println(jsonArray.toString());
                                 new Thread(){
                                     @Override
                                     public void run() {
@@ -136,8 +140,7 @@ public class ListActivity extends AppCompatActivity {
                                         HttpPost post = new HttpPost(delete_url);
                                         StringEntity entity;
                                         try {
-                                            entity = new StringEntity(jsonParam.toString(), "UTF-8");
-                                            System.out.println(jsonParam.toString());
+                                            entity = new StringEntity(jsonArray.toString(), "UTF-8");
                                             entity.setContentEncoding("UTF-8");
                                             entity.setContentType("application/json");
                                             post.setEntity(entity);
@@ -167,6 +170,10 @@ public class ListActivity extends AppCompatActivity {
                                         }
                                     }
                                 }.start();
+                                msgList.remove(pos);
+                                //listViewAdapter.notifyItemRangeRemoved(pos,msgList.size());
+                                listViewAdapter.notifyDataSetChanged();
+                                finish();
                                 break;
                         }
                         return true;
@@ -264,6 +271,7 @@ public class ListActivity extends AppCompatActivity {
                     post.setHeader("token", (String) SharedPreferencesUtil.getData("MyDemo","token",""));
                     HttpResponse response = client.execute(post);
                     System.out.println(response.getStatusLine().getStatusCode());
+                    Looper.prepare();
                     if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK){
                         String result = EntityUtils.toString(response.getEntity());
                         System.out.println(result);
@@ -272,9 +280,8 @@ public class ListActivity extends AppCompatActivity {
                             JSONObject jsonObject1 = jsonObject.getJSONObject("page");
                             JSONArray jsonArray = jsonObject1.getJSONArray("list");
                             if(jsonArray.isEmpty()||jsonArray.size() < 1){
-                                Looper.prepare();
                                 Toast.makeText(ListActivity.this,"暂无代班订单",Toast.LENGTH_SHORT).show();
-                                Looper.loop();
+
 
                             }else {
                                 for (int i = 0; i < jsonArray.size(); i++) {
@@ -289,6 +296,7 @@ public class ListActivity extends AppCompatActivity {
 
                         }
                     }
+                    Looper.loop();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

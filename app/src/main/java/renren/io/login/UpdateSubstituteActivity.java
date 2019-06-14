@@ -245,11 +245,12 @@ public class UpdateSubstituteActivity extends Activity {
                 }
 
                 System.out.println("imgUri1是"+imgUri1);
-                if (imgUri1.equals("")){
+                if (imgUri1 == null || imgUri1.length() == 0){
                     imgUri1 = jsonObject.getString("personnelPic");
                 }
 
-                if (imgUri2.equals("")){
+                System.out.println("imgUri2是"+imgUri2);
+                if (imgUri2 == null || imgUri2.length() == 0){
                     imgUri2 = jsonObject.getString("payPic");
                 }
 
