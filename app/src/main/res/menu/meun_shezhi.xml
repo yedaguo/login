@@ -5,6 +5,6 @@
     <item android:id="@+id/mu02"
         android:title="功能2"></item>
     <item android:id="@+id/mu03"
-        android:title="功能3"></item>
+        android:title="退出"></item>
 
 </menu>

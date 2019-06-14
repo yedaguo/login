@@ -225,6 +225,10 @@ public class ListActivity extends AppCompatActivity {
                                 break;
                             case R.id.mu03:
                                 Toast.makeText(ListActivity.this,"功能3",Toast.LENGTH_SHORT).show();
+                                SharedPreferencesUtil.delData("MyDemo");
+                                intent.setClass(ListActivity.this, renren.io.login.MainActivity.class);
+                                startActivity(intent);
+                                finish();
                                 break;
                         }
                         return true;
