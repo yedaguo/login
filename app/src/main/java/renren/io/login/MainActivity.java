@@ -32,7 +32,12 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
+import okhttp3.Call;
+import renren.io.utils.CallBackUtil;
+import renren.io.utils.OkhttpUtil;
 import renren.io.utils.SharedPreferencesUtil;
 import renren.io.utils.StreamTools;
 
@@ -44,13 +49,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private String username;
     private String password;
-
-
-
-
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,11 +63,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         //2.设置登录按钮和验证图片的点击事件
         bt_button.setOnClickListener(this);
-
-
     }
-
-
 
     @Override
     public void onClick(View v) {
@@ -91,56 +85,91 @@ public class MainActivity extends Activity implements View.OnClickListener {
             return;
         }
 
-        new Thread(){
+        Map<String,String> params = new HashMap<>();
+        params.put("username",username);
+        params.put("password",password);
+        OkhttpUtil.okHttpGet("https://api.highboy.cn/renren-fast/nuohua/user/appLogin", params, new CallBackUtil.CallBackString() {
             @Override
-            public void run() {
-                super.run();
-                String login_url = "https://api.highboy.cn/renren-fast/nuohua/user/appLogin?username=" + username + "&password=" + password+ "";
-                URL url;
+            public void onFailure(Call call, Exception e) {
+                Toast.makeText(MainActivity.this,"fail",Toast.LENGTH_SHORT).show();
+            }
 
-                try {
-                    url = new URL(login_url);
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            @Override
+            public void onResponse(String response) {
+                Toast.makeText(MainActivity.this,"success",Toast.LENGTH_SHORT).show();
+                System.out.println(response);
+                JSONObject jsonObject = JSONObject.parseObject(response);
+                if(jsonObject.getString("code").equals("0")){
+                    SharedPreferencesUtil.saveData("MyDemo","username",username);
+                    SharedPreferencesUtil.saveData("MyDemo","token",jsonObject.getString("token"));
+                    SharedPreferencesUtil.saveData("MyDemo","time",System.currentTimeMillis());
+                    SharedPreferencesUtil.saveData("MyDemo","expire",jsonObject.getLong("expire"));
+                    Toast.makeText(MainActivity.this,"登录成功",Toast.LENGTH_SHORT).show();
 
-                    connection.setConnectTimeout(10000);
-                    connection.setRequestMethod("GET");
-
-                    System.out.println(connection.getResponseCode());
-                    if(connection.getResponseCode() == HttpStatus.SC_OK){
-                        InputStream in =  connection.getInputStream();
-                        String content = StreamTools.readString(in);
-                        //System.out.println("woshi "+StreamTools.readString(in));
-                        JSONObject jsonObject = JSONObject.parseObject(content);
-                        System.out.println("code:"+jsonObject.getString("code"));
-                        System.out.println(jsonObject.toString());
-                        Looper.prepare();
-                        if(jsonObject.getString("code").equals("0")){
-                            SharedPreferencesUtil.saveData("MyDemo","username",username);
-                            SharedPreferencesUtil.saveData("MyDemo","token",jsonObject.getString("token"));
-                            SharedPreferencesUtil.saveData("MyDemo","time",System.currentTimeMillis());
-                            SharedPreferencesUtil.saveData("MyDemo","expire",jsonObject.getLong("expire"));
-                            Toast.makeText(MainActivity.this,"登录成功",Toast.LENGTH_SHORT).show();
-
-                            Intent it = new Intent();
-                            it.setClass(MainActivity.this, ListActivity.class);
-                            startActivity(it);
-                            finish();
-
-                        }else if (jsonObject.getString("code").equals("500")){
-                            Toast.makeText(MainActivity.this,jsonObject.getString("msg"),Toast.LENGTH_SHORT).show();
-                            et_password.setText("");
-                        }else if (jsonObject.getString("code").equals("401")){
-                            Toast.makeText(MainActivity.this,jsonObject.getString("msg"),Toast.LENGTH_SHORT).show();
-                            et_password.setText("");
-                        }
-                        Looper.loop();
-
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    Intent it = new Intent();
+                    it.setClass(MainActivity.this, ListActivity.class);
+                    startActivity(it);
+                    finish();
+                }else if (jsonObject.getString("code").equals("500")){
+                     Toast.makeText(MainActivity.this,jsonObject.getString("msg"),Toast.LENGTH_SHORT).show();
+                     et_password.setText("");
+                }else if (jsonObject.getString("code").equals("401")){
+                     Toast.makeText(MainActivity.this,jsonObject.getString("msg"),Toast.LENGTH_SHORT).show();
+                      et_password.setText("");
                 }
             }
-        }.start();
+        });
+
+//        new Thread(){
+//            @Override
+//            public void run() {
+//                super.run();
+//                String login_url = "https://api.highboy.cn/renren-fast/nuohua/user/appLogin?username=" + username + "&password=" + password+ "";
+//                URL url;
+//
+//                try {
+//                    url = new URL(login_url);
+//                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+//
+//                    connection.setConnectTimeout(10000);
+//                    connection.setRequestMethod("GET");
+//
+//                    System.out.println(connection.getResponseCode());
+//                    if(connection.getResponseCode() == HttpStatus.SC_OK){
+//                        InputStream in =  connection.getInputStream();
+//                        String content = StreamTools.readString(in);
+//                        //System.out.println("woshi "+StreamTools.readString(in));
+//                        JSONObject jsonObject = JSONObject.parseObject(content);
+//                        System.out.println("code:"+jsonObject.getString("code"));
+//                        System.out.println(jsonObject.toString());
+//                        Looper.prepare();
+//                        if(jsonObject.getString("code").equals("0")){
+//                            SharedPreferencesUtil.saveData("MyDemo","username",username);
+//                            SharedPreferencesUtil.saveData("MyDemo","token",jsonObject.getString("token"));
+//                            SharedPreferencesUtil.saveData("MyDemo","time",System.currentTimeMillis());
+//                            SharedPreferencesUtil.saveData("MyDemo","expire",jsonObject.getLong("expire"));
+//                            Toast.makeText(MainActivity.this,"登录成功",Toast.LENGTH_SHORT).show();
+//
+//                            Intent it = new Intent();
+//                            it.setClass(MainActivity.this, ListActivity.class);
+//                            startActivity(it);
+//                            finish();
+//
+//                        }else if (jsonObject.getString("code").equals("500")){
+//                            Toast.makeText(MainActivity.this,jsonObject.getString("msg"),Toast.LENGTH_SHORT).show();
+//                            et_password.setText("");
+//                        }else if (jsonObject.getString("code").equals("401")){
+//                            Toast.makeText(MainActivity.this,jsonObject.getString("msg"),Toast.LENGTH_SHORT).show();
+//                            et_password.setText("");
+//                        }
+//                        Looper.loop();
+//
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }.start();
     }
 }
 

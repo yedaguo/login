@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.Button;
@@ -34,14 +36,31 @@ public class DetailsActivity extends Activity {
 
     private Button btn01;
 
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            img01 = (ImageView) findViewById(R.id.iv01);
+            img02 = (ImageView) findViewById(R.id.iv02);
+            switch (msg.what){
+                case 1:
+                    img01.setImageBitmap((Bitmap) msg.obj);
+                    break;
+                case 2:
+                    img02.setImageBitmap((Bitmap) msg.obj);
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
 
         btn01 = (Button) findViewById(R.id.btn01);
-        img01 = (ImageView) findViewById(R.id.iv01);
-        img02 = (ImageView) findViewById(R.id.iv02);
         tv01 = (TextView) findViewById(R.id.tv01);
         tv02 = (TextView) findViewById(R.id.tv02);
         tv03 = (TextView) findViewById(R.id.tv03);
@@ -90,17 +109,22 @@ public class DetailsActivity extends Activity {
 
                     InputStream inputStream = connection.getInputStream();
 
-                    final Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+                    Message msg = new Message();
+                    msg.obj = bitmap;
+                    msg.what = 1;
+                    handler.sendMessage(msg);
 
                     //android.view.ViewRootImpl$CalledFromWrongThreadException异常处理
                     //处理方法：利用handler机制来处理，或者如下
                     //在UI线程上运行指定的操作。如果当前线程是UI线程，则立即执行操作。如果当前线程不是UI线程，则将操作发布到UI线程的事件队列。
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            img01.setImageBitmap(bitmap);
-                        }
-                    });
+//                    runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            img01.setImageBitmap(bitmap);
+//                        }
+//                    });
                     inputStream.close();
 
                 } catch (Exception e) {
@@ -123,17 +147,24 @@ public class DetailsActivity extends Activity {
 
                     InputStream inputStream = connection.getInputStream();
 
-                    final Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+                    Message msg = new Message();
+                    msg.obj = bitmap;
+                    msg.what = 2;
+                    handler.sendMessage(msg);
+
+
 
                     //android.view.ViewRootImpl$CalledFromWrongThreadException异常处理
                     //处理方法：利用handler机制来处理，或者如下
                     //在UI线程上运行指定的操作。如果当前线程是UI线程，则立即执行操作。如果当前线程不是UI线程，则将操作发布到UI线程的事件队列。
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            img02.setImageBitmap(bitmap);
-                        }
-                    });
+//                    runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            img02.setImageBitmap(bitmap);
+//                        }
+//                    });
 
 
 

@@ -164,11 +164,11 @@ public class AddSubstituteActivity extends Activity {
 
 
 
-                if(TextUtils.isEmpty(personnelName)||TextUtils.isEmpty(idCard)||TextUtils.isEmpty(num)||TextUtils.isEmpty(chargeunitPrice)||TextUtils.isEmpty(basicWage)||
-                        TextUtils.isEmpty(employeeId)||TextUtils.isEmpty(tranches)||TextUtils.isEmpty(sectionNumber)||TextUtils.isEmpty(orderNum)||TextUtils.isEmpty(signature)){
-                    Toast.makeText(AddSubstituteActivity.this,"所以有条件不能为空",Toast.LENGTH_SHORT).show();
-                    return;
-                }
+//                if(TextUtils.isEmpty(personnelName)||TextUtils.isEmpty(idCard)||TextUtils.isEmpty(num)||TextUtils.isEmpty(chargeunitPrice)||TextUtils.isEmpty(basicWage)||
+//                        TextUtils.isEmpty(employeeId)||TextUtils.isEmpty(tranches)||TextUtils.isEmpty(sectionNumber)||TextUtils.isEmpty(orderNum)||TextUtils.isEmpty(signature)){
+//                    Toast.makeText(AddSubstituteActivity.this,"所以有条件不能为空",Toast.LENGTH_SHORT).show();
+//                    return;
+//                }
 
 
 
