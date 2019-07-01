@@ -239,10 +239,11 @@ public class ListActivity extends AppCompatActivity {
                         for (int i = 0; i < jsonArray.size(); i++) {
                             JSONObject subObject = jsonArray.getJSONObject(i);
                             Msg msg = new Msg();
-                            msg.setTest01(subObject.getString("personnelName"));
-                            System.out.println(subObject.getString("personnelName"));
-                            msg.setTest02(subObject.getString("idCard"));
                             msg.setId(subObject.getInteger("id"));
+                            msg.setOrderNum(subObject.getString("orderNum"));
+                            System.out.println(subObject.getString("orderNum"));
+                            msg.setBillingDate(subObject.getString("billingDate"));
+                            msg.setTranches(subObject.getString("tranches"));
                             msgList.add(msg);
                         }
                     }
@@ -298,7 +299,7 @@ public class ListActivity extends AppCompatActivity {
                                         case R.id.mu01:
                                             Toast.makeText(ListActivity.this,"修改",Toast.LENGTH_SHORT).show();
                                             intent.setClass(ListActivity.this,UpdateSubstituteActivity.class);
-                                            intent.putExtra("1",msgList.get(pos).getId());
+                                            intent.putExtra("2",msgList.get(pos).getId());
                                             startActivity(intent);
                                             break;
                                         case R.id.mu02:
@@ -316,9 +317,8 @@ public class ListActivity extends AppCompatActivity {
                                                 public void onResponse(String response) {
                                                     jsonObject = JSONObject.parseObject(response);
                                                     if (jsonObject.getString("code").equals("0")) {
-                                                        Looper.prepare();
                                                         Toast.makeText(ListActivity.this, "删除成功", Toast.LENGTH_SHORT).show();
-                                                        Looper.loop();
+
                                                     }
                                                 }
                                             });
@@ -377,12 +377,19 @@ public class ListActivity extends AppCompatActivity {
                         //单击
                         @Override
                         public void onItemLClick(View view, int pos) {
-                            System.out.println(pos);
+                            System.out.println(msgList.get(pos).getId());
                             intent.setClass(ListActivity.this,DetailsActivity.class);
                             intent.putExtra("1",msgList.get(pos).getId());
                             startActivity(intent);
                         }
                     });
+                }else {
+                    Intent intent = new Intent();
+                    intent.setClass(ListActivity.this, renren.io.login.ListActivity.class);
+                    Toast.makeText(ListActivity.this, "请重新登录", Toast.LENGTH_SHORT).show();
+                    startActivity(intent);
+                    finish();
+
                 }
 
 
@@ -463,10 +470,11 @@ public class ListActivity extends AppCompatActivity {
                    for (int i = 0; i < jsonArray.size(); i++) {
                        JSONObject subObject = jsonArray.getJSONObject(i);
                        Msg msg = new Msg();
-                       msg.setTest01(subObject.getString("personnelName"));
-                       System.out.println(subObject.getString("personnelName"));
-                       msg.setTest02(subObject.getString("idCard"));
                        msg.setId(subObject.getInteger("id"));
+                       msg.setOrderNum(subObject.getString("orderNum"));
+                       System.out.println(subObject.getString("orderNum"));
+                       msg.setBillingDate(subObject.getString("billingDate"));
+                       msg.setTranches(subObject.getString("tranches"));
                        msgList1.add(msg);
                    }
                    msgList.addAll(msgList1);

@@ -14,7 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:layout_marginTop="100dp"
-            android:text="132"
+            android:text="代班管理"
             android:textSize="60dp"
             android:gravity="center"/>
     </RelativeLayout>

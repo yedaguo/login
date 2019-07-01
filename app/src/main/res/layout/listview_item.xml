@@ -3,28 +3,75 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="5"
-        android:orientation="vertical">
+        android:layout_marginTop="5dp"
+        android:orientation="vertical"
+        android:background="@drawable/content_bg">
+        <TextView
+            android:id="@+id/t1"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_weight="3"
+            android:text="订单号:"
+            android:textSize="18dp"/>
 
         <TextView
             android:id="@+id/tv1"
+            android:layout_toRightOf="@+id/t1"
+            android:layout_alignTop="@id/t1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
             android:layout_weight="3"
-            android:text="tv1"
-            android:textSize="30dp"/>
+            android:text="123"
+            android:textSize="18dp" />
+
+        <TextView
+            android:id="@+id/t2"
+            android:layout_toRightOf="@+id/t1"
+            android:layout_alignTop="@id/t1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="100dp"
+            android:layout_weight="3"
+            android:text="开单时间:"
+            android:textSize="18dp"/>
+
         <TextView
             android:id="@+id/tv2"
+            android:layout_toRightOf="@+id/t2"
+            android:layout_alignTop="@id/t2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
             android:layout_weight="3"
-            android:text="tv1"
-            android:textSize="30dp"/>
-    </LinearLayout>
+            android:text="123"
+            android:textSize="18dp" />
+
+        <TextView
+            android:id="@+id/t3"
+            android:layout_below="@+id/t1"
+            android:layout_alignLeft="@id/t1"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:text="组别:"
+            android:textSize="18dp"/>
+
+        <TextView
+            android:id="@+id/tv3"
+            android:layout_toRightOf="@+id/t3"
+            android:layout_alignTop="@id/t3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:text="123"
+            android:textSize="18dp" />
+    </RelativeLayout>
 
 </LinearLayout>

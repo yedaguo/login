@@ -55,8 +55,9 @@ public class ListViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
 
         if(holder instanceof Myholder){
-            ((Myholder)holder).textView01.setText(msgList.get(position).getTest01());
-            ((Myholder)holder).textView02.setText(msgList.get(position).getTest02());
+            ((Myholder)holder).textView01.setText(msgList.get(position).getOrderNum());
+            ((Myholder)holder).textView02.setText(msgList.get(position).getBillingDate());
+            ((Myholder)holder).textView03.setText(msgList.get(position).getTranches());
 
             if (onItemClickListener != null){
                 holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -120,11 +121,13 @@ public class ListViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public class Myholder extends RecyclerView.ViewHolder{
         TextView textView01;
         TextView textView02;
+        TextView textView03;
 
         public Myholder(View itemView) {
             super(itemView);
             textView01 = itemView.findViewById(R.id.tv1);
             textView02 = itemView.findViewById(R.id.tv2);
+            textView03 = itemView.findViewById(R.id.tv3);
         }
     }
 

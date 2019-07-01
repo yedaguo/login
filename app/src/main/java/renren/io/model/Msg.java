@@ -2,25 +2,9 @@ package renren.io.model;
 
 public class Msg {
     private Integer id;
-    private String test01;
-    private String test02;
-
-
-    public String getTest01() {
-        return test01;
-    }
-
-    public void setTest01(String test01) {
-        this.test01 = test01;
-    }
-
-    public String getTest02() {
-        return test02;
-    }
-
-    public void setTest02(String test02) {
-        this.test02 = test02;
-    }
+    private String orderNum;
+    private String billingDate;
+    private String tranches;
 
     public Integer getId() {
         return id;
@@ -30,11 +14,37 @@ public class Msg {
         this.id = id;
     }
 
-    public Msg(String test01, String test02) {
-        this.test01 = test01;
-        this.test02 = test02;
+    public String getOrderNum() {
+        return orderNum;
     }
-    public  Msg(){
-        super();
+
+    public void setOrderNum(String orderNum) {
+        this.orderNum = orderNum;
+    }
+
+    public String getBillingDate() {
+        return billingDate;
+    }
+
+    public void setBillingDate(String billingDate) {
+        this.billingDate = billingDate;
+    }
+
+    public String getTranches() {
+        return tranches;
+    }
+
+    public void setTranches(String tranches) {
+        this.tranches = tranches;
+    }
+
+    public Msg(Integer id, String orderNum, String billingDate, String tranches) {
+        this.id = id;
+        this.orderNum = orderNum;
+        this.billingDate = billingDate;
+        this.tranches = tranches;
+    }
+
+    public Msg() {
     }
 }

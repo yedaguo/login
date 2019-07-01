@@ -19,6 +19,13 @@ import com.alibaba.fastjson.JSONObject;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+
+import okhttp3.Call;
+import renren.io.utils.CallBackUtil;
+import renren.io.utils.OkhttpUtil;
+import renren.io.utils.SharedPreferencesUtil;
 
 public class DetailsActivity extends Activity {
     private TextView tv01;
@@ -35,6 +42,7 @@ public class DetailsActivity extends Activity {
     private ImageView img02;
 
     private Button btn01;
+    private String info_url = "https://api.highboy.cn/renren-fast/nuohua/nhSubstitute/info/";
 
     Handler handler = new Handler(){
         @Override
@@ -82,83 +90,98 @@ public class DetailsActivity extends Activity {
             }
         });
 
-        final JSONObject jsonObject = JSONObject.parseObject(getIntent().getStringExtra("1"));
-        System.out.println(jsonObject.toString());
-        tv01.setText(jsonObject.getString("personnelName"));
-        tv02.setText(jsonObject.getString("idCard"));
-        tv03.setText(jsonObject.getString("num"));
-        tv04.setText(jsonObject.getString("chargeunitPrice"));
-        tv05.setText(jsonObject.getString("basicWage"));
-        tv06.setText(jsonObject.getString("employeeId"));
-        tv07.setText(jsonObject.getString("tranches"));
-        tv08.setText(jsonObject.getString("sectionNumber"));
-        tv09.setText(jsonObject.getString("orderNum"));
-        tv10.setText(jsonObject.getString("signature"));
-
-        new Thread(){
+        final Map<String,String> Param = new HashMap<>();
+        final Map<String,String> header = new HashMap<>();
+        header.put("token", (String) SharedPreferencesUtil.getData("MyDemo","token",""));
+        System.out.println(getIntent().getIntExtra("1",1));
+        OkhttpUtil.okHttpGet(info_url + getIntent().getIntExtra("1",1), Param, header, new CallBackUtil.CallBackString() {
             @Override
-            public void run() {
-                URL url = null;
-                try {
-                    url = new URL(jsonObject.getString("personnelPic"));
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            public void onFailure(Call call, Exception e) {
 
-                    connection.setRequestMethod("GET");
-                    connection.setConnectTimeout(10000);
+            }
+
+            @Override
+            public void onResponse(String response) {
+                System.out.println("1121"+response);
+                final JSONObject jsonObject1 = JSONObject.parseObject(response);
+                final JSONObject jsonObject = jsonObject1.getJSONObject("substitute");
+                System.out.println(jsonObject.toString());
+                tv01.setText(jsonObject.getString("personnelName"));
+                tv02.setText(jsonObject.getString("idCard"));
+                tv03.setText(jsonObject.getString("num"));
+                tv04.setText(jsonObject.getString("chargeunitPrice"));
+                tv05.setText(jsonObject.getString("basicWage"));
+                tv06.setText(jsonObject.getString("employeeId"));
+                tv07.setText(jsonObject.getString("tranches"));
+                tv08.setText(jsonObject.getString("sectionNumber"));
+                tv09.setText(jsonObject.getString("orderNum"));
+                tv10.setText(jsonObject.getString("signature"));
+
+                new Thread(){
+                    @Override
+                    public void run() {
+                        URL url = null;
+                        try {
+                            url = new URL(jsonObject.getString("personnelPic"));
+                            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                            connection.setRequestMethod("GET");
+                            connection.setConnectTimeout(10000);
 
 
-                    InputStream inputStream = connection.getInputStream();
+                            InputStream inputStream = connection.getInputStream();
 
-                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
 
-                    Message msg = new Message();
-                    msg.obj = bitmap;
-                    msg.what = 1;
-                    handler.sendMessage(msg);
+                            Message msg = new Message();
+                            msg.obj = bitmap;
+                            msg.what = 1;
+                            handler.sendMessage(msg);
 
-                    //android.view.ViewRootImpl$CalledFromWrongThreadException异常处理
-                    //处理方法：利用handler机制来处理，或者如下
-                    //在UI线程上运行指定的操作。如果当前线程是UI线程，则立即执行操作。如果当前线程不是UI线程，则将操作发布到UI线程的事件队列。
+                            //android.view.ViewRootImpl$CalledFromWrongThreadException异常处理
+                            //处理方法：利用handler机制来处理，或者如下
+                            //在UI线程上运行指定的操作。如果当前线程是UI线程，则立即执行操作。如果当前线程不是UI线程，则将操作发布到UI线程的事件队列。
 //                    runOnUiThread(new Runnable() {
 //                        @Override
 //                        public void run() {
 //                            img01.setImageBitmap(bitmap);
 //                        }
 //                    });
-                    inputStream.close();
+                            inputStream.close();
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
 
-            }
-        }.start();
-        new Thread(){
-            @Override
-            public void run() {
-                URL url = null;
-                try {
-                    url = new URL(jsonObject.getString("payPic"));
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    }
+                }.start();
 
-                    connection.setRequestMethod("GET");
-                    connection.setConnectTimeout(10000);
+                new Thread(){
+                    @Override
+                    public void run() {
+                        URL url = null;
+                        try {
+                            url = new URL(jsonObject.getString("payPic"));
+                            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-
-                    InputStream inputStream = connection.getInputStream();
-
-                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-
-                    Message msg = new Message();
-                    msg.obj = bitmap;
-                    msg.what = 2;
-                    handler.sendMessage(msg);
+                            connection.setRequestMethod("GET");
+                            connection.setConnectTimeout(10000);
 
 
+                            InputStream inputStream = connection.getInputStream();
 
-                    //android.view.ViewRootImpl$CalledFromWrongThreadException异常处理
-                    //处理方法：利用handler机制来处理，或者如下
-                    //在UI线程上运行指定的操作。如果当前线程是UI线程，则立即执行操作。如果当前线程不是UI线程，则将操作发布到UI线程的事件队列。
+                            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+                            Message msg = new Message();
+                            msg.obj = bitmap;
+                            msg.what = 2;
+                            handler.sendMessage(msg);
+
+
+
+                            //android.view.ViewRootImpl$CalledFromWrongThreadException异常处理
+                            //处理方法：利用handler机制来处理，或者如下
+                            //在UI线程上运行指定的操作。如果当前线程是UI线程，则立即执行操作。如果当前线程不是UI线程，则将操作发布到UI线程的事件队列。
 //                    runOnUiThread(new Runnable() {
 //                        @Override
 //                        public void run() {
@@ -168,13 +191,18 @@ public class DetailsActivity extends Activity {
 
 
 
-                    inputStream.close();
+                            inputStream.close();
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }.start();
 
             }
-        }.start();
+        });
+
+
     }
 }

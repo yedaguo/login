@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Looper;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -46,14 +47,19 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
+import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import renren.io.utils.CallBackUtil;
+import renren.io.utils.OkhttpUtil;
 import renren.io.utils.SharedPreferencesUtil;
 
 public class UpdateSubstituteActivity extends Activity {
@@ -108,6 +114,10 @@ public class UpdateSubstituteActivity extends Activity {
 
     private String imgUrl;
 
+    private String info_url = "https://api.highboy.cn/renren-fast/nuohua/nhSubstitute/info/";
+
+    private JSONObject jsonObject1 ;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,8 +140,7 @@ public class UpdateSubstituteActivity extends Activity {
         et09 = (EditText) findViewById(R.id.et09);
         et10 = (EditText) findViewById(R.id.et10);
 
-        System.out.println(getIntent().getStringExtra("1"));
-        final JSONObject jsonObject = JSONObject.parseObject(getIntent().getStringExtra("1"));
+
 
         final Intent intent = new Intent();
         btn01.setOnClickListener(new View.OnClickListener() {
@@ -143,85 +152,107 @@ public class UpdateSubstituteActivity extends Activity {
             }
         });
 
-        et01.setText(jsonObject.getString("personnelName"));
-        et02.setText(jsonObject.getString("idCard"));
-        et03.setText(jsonObject.getString("num"));
-        et04.setText(jsonObject.getString("chargeunitPrice"));
-        et05.setText(jsonObject.getString("basicWage"));
-        et06.setText(jsonObject.getString("employeeId"));
-        et07.setText(jsonObject.getString("tranches"));
-        et08.setText(jsonObject.getString("sectionNumber"));
-        et09.setText(jsonObject.getString("orderNum"));
-        et10.setText(jsonObject.getString("signature"));
-        new Thread(){
+
+        final Map<String,String> Param = new HashMap<>();
+        final Map<String,String> header = new HashMap<>();
+        header.put("token", (String) SharedPreferencesUtil.getData("MyDemo","token",""));
+        System.out.println(getIntent().getIntExtra("2",1));
+        OkhttpUtil.okHttpGet(info_url + getIntent().getIntExtra("1",1), Param, header, new CallBackUtil.CallBackString() {
             @Override
-            public void run() {
-                URL url = null;
-                try {
-                    url = new URL(jsonObject.getString("personnelPic"));
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-                    connection.setRequestMethod("GET");
-                    connection.setConnectTimeout(10000);
-
-
-                    InputStream inputStream = connection.getInputStream();
-
-                    final Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-
-                    //android.view.ViewRootImpl$CalledFromWrongThreadException异常处理
-                    //处理方法：利用handler机制来处理，或者如下
-                    //在UI线程上运行指定的操作。如果当前线程是UI线程，则立即执行操作。如果当前线程不是UI线程，则将操作发布到UI线程的事件队列。
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            img01.setImageBitmap(bitmap);
-                        }
-                    });
-                    inputStream.close();
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            public void onFailure(Call call, Exception e) {
 
             }
-        }.start();
-        new Thread(){
+
             @Override
-            public void run() {
-                URL url = null;
-                try {
-                    url = new URL(jsonObject.getString("payPic"));
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            public void onResponse(String response) {
+                System.out.println("1121"+response);
+                jsonObject1 = JSONObject.parseObject(response);
+                final JSONObject jsonObject = jsonObject1.getJSONObject("substitute");
+                System.out.println(jsonObject.toString());
+                et01.setText(jsonObject.getString("personnelName"));
+                et02.setText(jsonObject.getString("idCard"));
+                et03.setText(jsonObject.getString("num"));
+                et04.setText(jsonObject.getString("chargeunitPrice"));
+                et05.setText(jsonObject.getString("basicWage"));
+                et06.setText(jsonObject.getString("employeeId"));
+                et07.setText(jsonObject.getString("tranches"));
+                et08.setText(jsonObject.getString("sectionNumber"));
+                et09.setText(jsonObject.getString("orderNum"));
+                et10.setText(jsonObject.getString("signature"));
+                new Thread(){
+                    @Override
+                    public void run() {
+                        URL url = null;
+                        try {
+                            url = new URL(jsonObject.getString("personnelPic"));
+                            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-                    connection.setRequestMethod("GET");
-                    connection.setConnectTimeout(10000);
+                            connection.setRequestMethod("GET");
+                            connection.setConnectTimeout(10000);
 
 
-                    InputStream inputStream = connection.getInputStream();
+                            InputStream inputStream = connection.getInputStream();
 
-                    final Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                            final Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
 
-                    //android.view.ViewRootImpl$CalledFromWrongThreadException异常处理
-                    //处理方法：利用handler机制来处理，或者如下
-                    //在UI线程上运行指定的操作。如果当前线程是UI线程，则立即执行操作。如果当前线程不是UI线程，则将操作发布到UI线程的事件队列。
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            img02.setImageBitmap(bitmap);
+                            //android.view.ViewRootImpl$CalledFromWrongThreadException异常处理
+                            //处理方法：利用handler机制来处理，或者如下
+                            //在UI线程上运行指定的操作。如果当前线程是UI线程，则立即执行操作。如果当前线程不是UI线程，则将操作发布到UI线程的事件队列。
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    img01.setImageBitmap(bitmap);
+                                }
+                            });
+                            inputStream.close();
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                    });
+
+                    }
+                }.start();
+                new Thread(){
+                    @Override
+                    public void run() {
+                        URL url = null;
+                        try {
+                            url = new URL(jsonObject.getString("payPic"));
+                            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                            connection.setRequestMethod("GET");
+                            connection.setConnectTimeout(10000);
+
+
+                            InputStream inputStream = connection.getInputStream();
+
+                            final Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+                            //android.view.ViewRootImpl$CalledFromWrongThreadException异常处理
+                            //处理方法：利用handler机制来处理，或者如下
+                            //在UI线程上运行指定的操作。如果当前线程是UI线程，则立即执行操作。如果当前线程不是UI线程，则将操作发布到UI线程的事件队列。
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    img02.setImageBitmap(bitmap);
+                                }
+                            });
 
 
 
-                    inputStream.close();
+                            inputStream.close();
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }.start();
 
             }
-        }.start();
+        });
+
+
 
 
         btn02.setOnClickListener(new View.OnClickListener() {
@@ -246,16 +277,16 @@ public class UpdateSubstituteActivity extends Activity {
 
                 System.out.println("imgUri1是"+imgUri1);
                 if (imgUri1 == null || imgUri1.length() == 0){
-                    imgUri1 = jsonObject.getString("personnelPic");
+                    imgUri1 = jsonObject1.getJSONObject("substitute").getString("personnelPic");
                 }
 
                 System.out.println("imgUri2是"+imgUri2);
                 if (imgUri2 == null || imgUri2.length() == 0){
-                    imgUri2 = jsonObject.getString("payPic");
+                    imgUri2 = jsonObject1.getJSONObject("substitute").getString("payPic");
                 }
 
                 final JSONObject jsonParam = new JSONObject();
-                jsonParam.put("id",jsonObject.getString("id"));
+                jsonParam.put("id",jsonObject1.getJSONObject("substitute").getString("id"));
                 jsonParam.put("personnelName", personnelName);
                 jsonParam.put("idCard", idCard);
                 jsonParam.put("num", num);
